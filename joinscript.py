@@ -1,52 +1,58 @@
-#initialise both empty dictionaries and load data files
-dataL = open("test_data_01.csv","r")
-dataR = open("test_data_02.csv","r")
-listL = []
-listR = []
-joinedlist = []
+##Script written in Python3 - Nikolaos Palamidas##
 
-def csvtoarray(file,array,delim=","):
-    """Takes a file delimited by some delim character (csv by default)
-     and returns a list of lists(array) of the file"""
-    line = ''
-    for line in file:
-        line = line.strip('\n')
-        splitstring = line.split(delim)
-        array.append(splitstring)
+def LEFTJOIN(Lfilename,Rfilename,LEFT_ON,RIGHT_ON,destination,delimiter = ","):
+    """Takes arguments of a file name for the left and right tables
+     (in working directory). Left joins according to the LEFT_ON and RIGHT_ON columns of each specified by zero indexed number.
+    Delimiter is set to a comma as default"""
+    dataL = open(Lfilename,"r")
+    dataR = open(Rfilename,"r")
+    listL = []
+    listR = []
+    joinedlist = []
 
-csvtoarray(dataL,listL)
-csvtoarray(dataR,listR)
+    def csvtoarray(file,array,delim):
+        """Takes a file delimited by some delim character (csv by default)
+         and returns a list of lists(array) of the file"""
+        line = ''
+        for line in file:
+            line = line.strip('\n')
+            splitstring = line.split(delim)
+            array.append(splitstring)
 
-def LEFTJOIN(LEFT,RIGHT,L_ON,R_ON,RESULT):
-    """Takes a left and right array and left joins them according to
-    the zero indexed ON keys. Returns a RESULT array"""
-    for L in LEFT:
-        countmatch = 0
-        for R in RIGHT:
-            if L[L_ON] == R[R_ON]:
-                countmatch = countmatch + 1
-                RESULT.append(L+R)
-        if countmatch == 0:
-            RESULT.append(L+['NULL'])
-    keys = LEFT[0] + RIGHT[0]
-    RESULT[0] = keys
+    csvtoarray(dataL,listL,delimiter)
+    csvtoarray(dataR,listR,delimiter)
 
-LEFTJOIN(listL,listR,1,0,joinedlist)
-print("The left join produced a table with " +str(len(joinedlist)-1) +" rows!")
+    def JOIN(LEFT,RIGHT,L_ON,R_ON,RESULT):
+        """Takes a left and right array and left joins them according to
+        the zero indexed ON keys. Returns a RESULT array"""
+        for L in LEFT:
+            countmatch = 0
+            for R in RIGHT:
+                if L[L_ON] == R[R_ON]:
+                    countmatch = countmatch + 1
+                    RESULT.append(L+R)
+            if countmatch == 0:
+                RESULT.append(L+['NULL','NULL'])
+        keys = LEFT[0] + RIGHT[0]
+        RESULT[0] = keys
 
-def concatlist(lst):
-    """Concatenates all the lists in a string in preparation
-    for loading into the final csv file"""
-    result = ''
-    for element in lst:
-        result += ',' + str(element)
-    result = result[1:]
-    return result
+    JOIN(listL,listR,LEFT_ON,RIGHT_ON,joinedlist)
 
-dest = open('joined.csv','w')
-for row in joinedlist:
-    dest.write(str(concatlist(row))+'\n')
-dest.close()
+    def concatlist(lst):
+        """Concatenates all the lists in a string in preparation
+        for loading into the final csv file"""
+        result = ''
+        for element in lst:
+            result += delimiter + str(element)
+        result = result[1:]
+        return result
 
+    dest = open(destination,'w')
+    for row in joinedlist:
+        dest.write(str(concatlist(row))+'\n')
+    dest.close()
+#END OF LEFTJOIN FUNCTION
 
-input("Success! The LEFT JOINED csv is found in joined.csv")
+#Left join the test files using the PD columns
+LEFTJOIN("test_data_01.csv","test_data_02.csv",1,0,"joined.csv")
+input("SUCCESS!!! joined.csv can now be found in the working directory...")
